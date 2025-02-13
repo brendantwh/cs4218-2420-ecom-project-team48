@@ -88,59 +88,31 @@ describe("createProductController", () => {
     expect(fs.readFileSync).toHaveBeenCalledWith("test/path/photo.jpg");
   });
 
-  it("should return error when name is missing", async () => {
-    mockReq.fields.name = "";
+  it.each([
+    { field: "name", expectedError: "Name is Required" },
+    { field: "description", expectedError: "Description is Required" },
+    { field: "price", expectedError: "Price is Required" },
+    { field: "category", expectedError: "Category is Required" },
+    { field: "quantity", expectedError: "Quantity is Required" },
+  ])("should return error when $field is missing", async ({ field, expectedError }) => {
+    // Use this req for testing field validation
+    const req = {
+      ...mockReq,
+      fields: {
+        ...mockReq.fields,
+        [field]: "",
+      },
+    };
 
-    await createProductController(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(500);
-    expect(mockRes.send).toHaveBeenCalledWith({
-      error: "Name is Required",
-    });
-  });
-
-  it("should return error when description is missing", async () => {
-    mockReq.fields.description = "";
-
-    await createProductController(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(500);
-    expect(mockRes.send).toHaveBeenCalledWith({
-      error: "Description is Required",
-    });
-  });
-
-  it("should return error when price is missing", async () => {
-    mockReq.fields.price = "";
-
-    await createProductController(mockReq, mockRes);
+    await createProductController(req, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(500);
     expect(mockRes.send).toHaveBeenCalledWith({
-      error: "Price is Required",
+      error: expectedError,
     });
-  });
 
-  it("should return error when category is missing", async () => {
-    mockReq.fields.category = "";
-
-    await createProductController(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(500);
-    expect(mockRes.send).toHaveBeenCalledWith({
-      error: "Category is Required",
-    });
-  });
-
-  it("should return error when quantity is missing", async () => {
-    mockReq.fields.quantity = "";
-
-    await createProductController(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(500);
-    expect(mockRes.send).toHaveBeenCalledWith({
-      error: "Quantity is Required",
-    });
+    mockRes.status.mockClear();
+    mockRes.send.mockClear();
   });
 
   it("should return error when photo size exceeds 1MB", async () => {
@@ -309,15 +281,31 @@ describe("updateProductController", () => {
     });
   });
 
-  it("should return error when name is missing", async () => {
-    mockReq.fields.name = "";
+  it.each([
+    { field: "name", expectedError: "Name is Required" },
+    { field: "description", expectedError: "Description is Required" },
+    { field: "price", expectedError: "Price is Required" },
+    { field: "category", expectedError: "Category is Required" },
+    { field: "quantity", expectedError: "Quantity is Required" },
+  ])("should return error when $field is missing", async ({ field, expectedError }) => {
+    // Use this req for testing field validation
+    const req = {
+      ...mockReq,
+      fields: {
+        ...mockReq.fields,
+        [field]: "",
+      },
+    };
 
-    await updateProductController(mockReq, mockRes);
+    await updateProductController(req, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(500);
     expect(mockRes.send).toHaveBeenCalledWith({
-      error: "Name is Required",
+      error: expectedError,
     });
+
+    mockRes.status.mockClear();
+    mockRes.send.mockClear();
   });
 
   it("should return error when photo size exceeds 1MB", async () => {
@@ -358,40 +346,5 @@ describe("updateProductController", () => {
       message: "Product Updated Successfully",
       products: expect.any(Object),
     });
-  });
-
-  it("should validate required fields", async () => {
-    const requiredFields = [
-      "name",
-      "description",
-      "price",
-      "category",
-      "quantity",
-    ];
-
-    // Testing each required field
-    for (const field of requiredFields) {
-      // Reset req for each iteration
-      mockReq.fields = {
-        name: "New Jeans",
-        description: "New description",
-        price: 25.99,
-        category: "Clothing",
-        quantity: 10,
-        shipping: true,
-      };
-
-      mockReq.fields[field] = "";
-
-      await updateProductController(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(500);
-      expect(mockRes.send).toHaveBeenCalledWith({
-        error: `${field.charAt(0).toUpperCase() + field.slice(1)} is Required`,
-      });
-
-      mockRes.status.mockClear();
-      mockRes.send.mockClear();
-    }
   });
 });
